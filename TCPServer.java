@@ -21,11 +21,6 @@ public class TCPServer {
 
                 DataInputStream in = new DataInputStream(connectionSocket.getInputStream());
 
-				// wait
-                while (in.available() < 4) {
-                    Thread.sleep(2);
-                }
-
                 int fileSize = in.readInt();
                 if (fileSize <= 0 || fileSize > 50_000_000) { // <50MB safety cap
                     System.out.println("Invalid file size: " + fileSize);
