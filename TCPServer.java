@@ -14,10 +14,10 @@ public class TCPServer
 		try 
 		{
 		
-			   serverSocket = new ServerSocket(9999); //creates a socket and binds it to port 9999
+			   serverSocket = new ServerSocket(5050); //creates a socket and binds it to port 5050
 			   //serverSocket = new ServerSocket(0); //creates a socket and binds it to next available port 
 
-			   System.out.println("Waiting for client on port 9999...");
+			   System.out.println("Waiting for client on port 5050...");
 			   
 			   while (true)
 			   {
