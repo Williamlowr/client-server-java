@@ -46,7 +46,9 @@ public class TCPServer {
                         + "}";
 
                 System.out.println("Sending JSON: " + responseJson);
-                out.writeUTF(responseJson);
+
+				out.write((responseJson + "\n").getBytes("UTF-8"));
+				out.flush();
 
                 System.out.println("Received file size in bytes = " + fileSize);
                 System.out.println("Received file SHA256 hash: " + hash);
