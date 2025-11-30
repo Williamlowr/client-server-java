@@ -38,7 +38,11 @@ public class TCPServer
 				   String hash = compHash(file);
 				   
 				   DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream()); //setup a stream for outgoing bytes of data	   
-				   out.writeUTF(hash);
+				   String responseJson = "{"
+						+ "\"fileSizeBytes\": " + fileSize + ","
+						+ "\"sha256\": \"" + hash + "\""
+						+ "}";
+					out.writeUTF(responseJson);
 				   
 				   connectionSocket.close();  //close connection socket after this exchange
 				   
