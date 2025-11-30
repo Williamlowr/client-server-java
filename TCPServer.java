@@ -42,6 +42,8 @@ public class TCPServer
 						+ "\"fileSizeBytes\": " + fileSize + ","
 						+ "\"sha256\": \"" + hash + "\""
 						+ "}";
+
+					System.out.println("Sending JSON: " + responseJson);
 					out.writeUTF(responseJson);
 				   
 				   connectionSocket.close();  //close connection socket after this exchange
