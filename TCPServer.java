@@ -17,44 +17,65 @@ public class TCPServer {
                         + " to client port # "
                         + connectionSocket.getRemoteSocketAddress());
                 
-                DataInputStream in = new DataInputStream(connectionSocket.getInputStream());
-                
-                int fileSize = in.readInt();
-                if (fileSize <= 0 || fileSize > 50_000_000) { // <50MB safety cap
-                    System.out.println("Invalid file size: " + fileSize);
-                    connectionSocket.close();
-                    continue;
-                }
-                
-                byte[] file = new byte[fileSize];
-                in.readFully(file);
-                String hash = compHash(file);
-                
-                System.out.println("Received file size in bytes = " + fileSize);
-                System.out.println("Received file SHA256 hash: " + hash);
-                
-                // Respond to client
-                DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream());
-                String responseJson = "{"
-                        + "\"fileSizeBytes\": " + fileSize + ","
-                        + "\"sha256\": \"" + hash + "\""
-                        + "}";
-                
-                System.out.println("Sending JSON: " + responseJson);
-                out.write((responseJson + "\n").getBytes("UTF-8"));
-                out.flush();
-                
-                // Give the client time to receive the data before closing
-                Thread.sleep(100); // Increased from 10ms to 100ms
-                
-                // Gracefully close the connection
                 try {
-                    connectionSocket.shutdownOutput();
+                    // Set socket timeout to prevent hanging
+                    connectionSocket.setSoTimeout(5000);
+                    
+                    DataInputStream in = new DataInputStream(connectionSocket.getInputStream());
+                    
+                    int fileSize = in.readInt();
+                    if (fileSize <= 0 || fileSize > 50_000_000) {
+                        System.out.println("Invalid file size: " + fileSize);
+                        connectionSocket.close();
+                        continue;
+                    }
+                    
+                    byte[] file = new byte[fileSize];
+                    in.readFully(file);
+                    String hash = compHash(file);
+                    
+                    System.out.println("Received file size in bytes = " + fileSize);
+                    System.out.println("Received file SHA256 hash: " + hash);
+                    
+                    // Respond to client
+                    OutputStream out = connectionSocket.getOutputStream();
+                    String responseJson = "{"
+                            + "\"fileSizeBytes\": " + fileSize + ","
+                            + "\"sha256\": \"" + hash + "\""
+                            + "}";
+                    
+                    System.out.println("Sending JSON: " + responseJson);
+                    
+                    // Write response and flush
+                    out.write((responseJson + "\n").getBytes("UTF-8"));
+                    out.flush();
+                    
+                    System.out.println("Response sent, waiting for client to close...");
+                    
+                    // DON'T close immediately - wait for client to close or read EOF
+                    try {
+                        // Try to read one more byte - this will block until client closes
+                        int eof = in.read();
+                        if (eof == -1) {
+                            System.out.println("Client closed connection gracefully");
+                        }
+                    } catch (SocketTimeoutException e) {
+                        System.out.println("Client didn't close within timeout, closing anyway");
+                    } catch (IOException e) {
+                        System.out.println("Connection closed by client: " + e.getMessage());
+                    }
+                    
                 } catch (Exception e) {
-                    System.out.println("Error during shutdown: " + e.getMessage());
+                    System.err.println("Error handling client: " + e.getMessage());
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        connectionSocket.close();
+                        System.out.println("Socket closed\n");
+                    } catch (IOException e) {
+                        System.err.println("Error closing socket: " + e.getMessage());
+                    }
                 }
-                
-                connectionSocket.close();
             }
         } catch (Exception e) {
             e.printStackTrace();
