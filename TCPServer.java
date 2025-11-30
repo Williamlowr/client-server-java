@@ -53,6 +53,9 @@ public class TCPServer {
                 System.out.println("Received file size in bytes = " + fileSize);
                 System.out.println("Received file SHA256 hash: " + hash);
 
+				connectionSocket.shutdownOutput();
+				Thread.sleep(10);
+
                 connectionSocket.close();
             }
 
