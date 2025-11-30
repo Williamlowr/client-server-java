@@ -50,20 +50,12 @@ public class TCPServer {
                     out.write((responseJson + "\n").getBytes("UTF-8"));
                     out.flush();
                     
-                    System.out.println("Response sent, waiting for client to close...");
+                    System.out.println("Response sent and flushed");
                     
-                    // DON'T close immediately - wait for client to close or read EOF
-                    try {
-                        // Try to read one more byte - this will block until client closes
-                        int eof = in.read();
-                        if (eof == -1) {
-                            System.out.println("Client closed connection gracefully");
-                        }
-                    } catch (SocketTimeoutException e) {
-                        System.out.println("Client didn't close within timeout, closing anyway");
-                    } catch (IOException e) {
-                        System.out.println("Connection closed by client: " + e.getMessage());
-                    }
+                    // Give time for data to travel through Railway's proxy
+                    Thread.sleep(500);
+                    
+                    System.out.println("Closing connection after delay");
                     
                 } catch (Exception e) {
                     System.err.println("Error handling client: " + e.getMessage());
